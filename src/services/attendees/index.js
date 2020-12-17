@@ -4,8 +4,6 @@ const { getAttendees, writeAttendees } = require("../../fsUtilities")
 
 const { check, validationResult } = require("express-validator")
 const attendeesValidation = [
-    check("First name").exists().withMessage("Name is required!"),
-    check("Second name").exists().withMessage("Second name is required!"),
     check("Email").exists().withMessage("Email is required!"),
 ]
 
@@ -13,6 +11,8 @@ const { pipeline } = require("stream")
 const { Transform } = require("json2csv")
 const { join } = require("path")
 const { createReadStream } = require("fs-extra")
+
+const sgMail = require('@sendgrid/mail');
 
 
 const attendeesRouter = express.Router()
@@ -76,6 +76,26 @@ attendeesRouter.get("/export/csv", (req, res, next) => {
   } catch (error) {
     next(error)
   }
+})
+
+//POST e-mail
+
+attendeesRouter.post("/sendEmail", async (req, res, next) => {
+    
+    try{sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    const msg = {
+        to: 'pieroapruzzese@tiscali.it',
+        from: 'pieroapruzzese@gmail.com', // Use the email address or domain you verified above
+        subject: 'Sending with Twilio SendGrid is Fun',
+        text: 'and easy to do anywhere, even with Node.js',
+        html: '<strong>and easy to do anywhere, even with Node.js</strong>',
+    };
+    
+        await sgMail.send(msg)
+        res.send("SENT")
+    } catch (error) {
+        next(error)
+    }
 })
 
 
